@@ -1,0 +1,2 @@
+# Nature-and-characteristics-of-Indian-political-parties
+This work is a visualization of the various characteristics of the political parties and its members of the 16th Lok Sabha of the Indian Parliament. The data can be downloaded from http://www.prsindia.org/mptrack/rajyasabha under the **Download Data** section. For a vast majority of the Ministers of Parliament(MPs), their offices started from 18-May-14 and most they are presently holding their offices.  The author neither claims nor is responsible for the authenticity of the data. 
