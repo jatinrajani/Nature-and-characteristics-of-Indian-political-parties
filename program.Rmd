@@ -1,0 +1,478 @@
+---
+title: <span style="color:blue"> Nature and characteristics of Indian political parties </span> 
+subtitle: <span style="color:blue"> Visual summary of various parameters from the 16th Lok Sabha member's data </span> 
+author: "Dr. Satyakama Paul"
+date: "March 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width = 30, 
+                      fig.height = 15,
+                      fig.align='center',
+                      echo = F)
+htmltools::tagList(rmarkdown::html_dependency_font_awesome())
+```
+
+## <span style="color: #DB2929"> Objective </span>
+
+<span style="color:black"> 
+This work is a visualization of the various characteristics of the political parties and its members of the 16th Lok Sabha of the Indian Parliament. The data can be downloaded from http://www.prsindia.org/mptrack/rajyasabha under the **Download Data** section. For a vast majority of the Ministers of Parliament(MPs), their offices started from 18-May-14 and most they are presently holding their offices.
+
+The author neither claims nor is responsible for the authenticity of the data.  
+
+</span>
+
+<span style="color: #666666">
+**Please note that the following work is a visual summarization of the data and no effort has been carried to find the functional relationship between the concerned variables.**
+
+</span>
+
+
+```{r, echo = F}
+library(ggplot2)
+library(scales)
+library(gridExtra)
+
+setwd("**Set your data path here***")
+
+master.data <- read.csv("SixteenthLokSabha.csv",
+                        header = T,
+                        na.strings = c("N/A",
+                                       ""),
+                        stringsAsFactors = T)
+
+
+colnames(master.data) <- tolower(colnames(master.data))
+
+colnames(master.data)[5] <- c("no.of.term")
+colnames(master.data)[12] <- c("educational.qualifications.details")
+colnames(master.data)[23:26] <- c("state's.debates.average",
+                                  "state's.private.member.bills..average",
+                                  "state's.questions.average",
+                                  "state's.attendance.average")
+
+master.data <- master.data[complete.cases(master.data),]
+
+master.data$gender <- as.factor(master.data$gender)
+
+
+
+vals <- c(table(master.data$gender)[[1]],table(master.data$gender)[[2]])
+val_names <- sprintf("%s (%s)", c("Female", "Male"), scales::percent(round(vals/sum(vals), 2)))
+names(vals) <- val_names
+
+fig1 <- waffle::waffle(vals/5,
+                       rows = 4,
+                       keep =5,
+                       colors = c("#00cc00", "#4e91fd"))+
+          ggtitle("Gender ratio among the MPs")+
+          theme(plot.title = element_text(hjust = 0.5,
+                                          size = 30, 
+                                          face = "bold", 
+                                          colour = "black"),
+                                          legend.text = element_text(size = 26))
+
+
+education = NULL
+
+master.data$educational.qualifications <- as.factor(master.data$educational.qualifications)
+
+for(i in 1:length(master.data$educational.qualifications)){
+     
+    if(master.data$educational.qualifications[i]=="Certificate Course"){
+     education[i] = "Certificate"}
+     
+     else if (master.data$educational.qualifications[i]=="Diploma Course"){
+     education[i] = "Diploma"}
+     
+     else if (master.data$educational.qualifications[i]=="Doctorate"){
+     education[i] = "PhD"}
+     
+     else if (master.data$educational.qualifications[i]=="Graduate"){
+     education[i] = "Grad"}
+     
+     else if (master.data$educational.qualifications[i]=="Information not available"){
+     education[i] = "Info.not.av"}
+     
+     else if (master.data$educational.qualifications[i]=="Inter/ Higher Secondary"){
+     education[i] = "Std.12"}
+     
+     else if (master.data$educational.qualifications[i]=="Matric"){
+     education[i] = "Std.10"}
+     
+     else if (master.data$educational.qualifications[i]=="others"){
+     education[i] = "Others"
+     }
+     
+     else if (master.data$educational.qualifications[i]=="Others"){
+     education[i] = "Others"
+     }
+     
+     else if (master.data$educational.qualifications[i]=="Post Diploma Course"){
+     education[i] = "Post.diploma"
+     }
+     else if (master.data$educational.qualifications[i]=="Post Graduate"){
+     education[i] = "Post.grad"
+     }
+     else if (master.data$educational.qualifications[i]=="Professional Graduate"){
+     education[i] = "Prof.grad"
+     }
+     else if (master.data$educational.qualifications[i]=="Professional Post Graduate"){
+     education[i] = "Prof.post.grad"
+     }
+     else if (master.data$educational.qualifications[i]=="Under Graduate"){
+     education[i] = "Under.grad"
+     }
+     
+     else if (master.data$educational.qualifications[i]=="Under Matric"){
+     education[i] = "Under.std.10"
+     }
+     else {education[i] = master.data$educational.qualifications[i]}
+     }
+
+education <- as.factor(education)
+
+master.data <- cbind(master.data,
+                     education)
+
+fig2 <- ggplot(master.data, 
+               aes(x = education, 
+                   y = gender,
+                   fill = gender))+
+     geom_bar(aes(y=..count../sum(..count..)))+
+     scale_y_continuous(labels=percent_format())+
+     scale_fill_manual(values=c("#00cc00", "#4e91fd"))+
+     xlab("Levels of education") +
+     ylab("Frequency") +
+     ggtitle("How educated the MPs are")+
+     theme(axis.text=element_text(size=16),
+                     axis.title=element_text(size=22,
+                                             face="bold",
+                                             colour = "#000000"),
+                     plot.title = element_text(hjust = 0.5,
+                                               size = 30,
+                                               face = "bold",
+                                               colour = "Black"),
+                     legend.text = element_text(size = 26),
+                     panel.background = element_rect(fill= "#FFFFFF"),
+                     panel.border = element_rect(colour = "black", 
+                                                 fill=NA, 
+                                                 size=0.5),
+                     panel.grid.major.y = element_line( size=.05,
+                                                        color="black" ) )
+
+
+fig3 <- ggplot(master.data, 
+                 aes(x = age)) + 
+               geom_density(aes(group = gender, 
+                                colour = gender, 
+                                fill = gender), 
+                                alpha = 0.3,
+                            size=1)+
+               xlab("Age") +
+               ylab("Density")+
+          scale_fill_manual(values=c("Red", "Blue"))+
+          ggtitle("What's the age distribution of the MPs")+
+          theme(axis.text=element_text(size=16),
+                     axis.title=element_text(hjust = 0.5,
+                                             size = 30,
+                                             face="bold",
+                                             colour = "#000000"),
+                     plot.title = element_text(size = 30,
+                                               face = "bold",
+                                               colour = "Black"),
+                     legend.text = element_text(size = 26),
+                     panel.background = element_rect(fill= "#FFFFFF"),
+                     panel.border = element_rect(colour = "black", 
+                                                 fill=NA, 
+                                                 size=0.5))
+
+
+attendance. <- gsub("%", "", as.character(master.data$attendance))
+attendance. <- as.integer(attendance.)
+master.data <- cbind(master.data,
+                     attendance.)
+
+
+fig4 <- ggplot(master.data, 
+                 aes(x = attendance.)) + 
+               geom_density(aes(group = gender, 
+                                colour = gender, 
+                                fill = gender), 
+                                alpha = 0.3,
+                                size=1)+
+               xlab("Attendance") +
+               ylab("Density")+
+          scale_fill_manual(values=c("Red", "Blue"))+
+          ggtitle("What's the attendance distribution of the MPs")+
+          theme(axis.text=element_text(size=16),
+                     axis.title=element_text(hjust = 0.5,
+                                             size=30,
+                                             face="bold",
+                                             colour = "#000000"),
+                     plot.title = element_text(size = 30,
+                                               face = "bold",
+                                               colour = "Black"),
+                     legend.text = element_text(size = 26),
+                     panel.background = element_rect(fill= "#FFFFFF"),
+                     panel.border = element_rect(colour = "black", 
+                                                 fill=NA, 
+                                                 size=0.5))
+
+
+fig5 <- qplot(x = age,
+              y = attendance.,
+              data = master.data,
+              geom = c("point", "smooth"),
+              color = gender,
+              size = I(2.5),
+              main = "Does age affect attendance",
+              ylim = c(min(master.data$attendance.),
+                       100),
+              xlim = c(min(master.data$age),
+                       quantile(master.data$age, 
+                                c(0.95))),
+              xlab = "Age (extreme values of age have been removed)",
+              ylab = "Attendance in %")+
+     theme(axis.text=element_text(size=16),
+                     axis.title=element_text(hjust = 0.5,
+                                             size=22,
+                                             face="bold",
+                                             colour = "#000000"),
+                     plot.title = element_text(size = 30,
+                                               face = "bold",
+                                               colour = "Black"),
+                     legend.text = element_text(size = 26),
+                     panel.background = element_rect(fill= "#FFFFFF"),
+                     panel.border = element_rect(colour = "black", 
+                                                 fill=NA, 
+                                                 size=0.5))
+
+fig6 <- qplot(x = age,
+              y = debates,
+              data = master.data,
+              geom = c("point", "smooth"),
+              color = gender,
+              size = I(2.5),
+              main = "Does age affect no. of debates attended",
+              xlab = "Age (extreme values of age have been removed)",
+              ylab = "No. of debates(extreme values of debates have been removed)",
+              ylim = c(min(master.data$debates),
+                       quantile(master.data$debates, 
+                                c(0.95))),
+              xlim = c(min(master.data$age),
+                       quantile(master.data$age, 
+                                c(0.95))))+
+     theme(axis.text=element_text(size=16),
+                     axis.title=element_text(hjust = 0.5,
+                                             size=22,
+                                             face="bold",
+                                             colour = "#000000"),
+                     plot.title = element_text(size = 24,
+                                               face = "bold",
+                                               colour = "black"),
+                     legend.text = element_text(size = 26),
+                     panel.background = element_rect(fill= "#FFFFFF"),
+                     panel.border = element_rect(colour = "black", 
+                                                 fill=NA, 
+                                                 size=0.5))
+
+
+political.party. <- gsub("[:a-z:]",
+                         "",
+                         master.data$political.party)
+library(stringr)
+political.party. <- str_replace_all(political.party.,
+                                    fixed(" "),
+                                    "")
+
+master.data <- cbind(master.data,
+                     political.party.)
+
+
+fig7 <- ggplot(master.data, 
+                 aes(x = political.party.,
+                     fill = gender))+
+               geom_bar(aes(y=..count../sum(..count..)))+
+               coord_flip() +
+               scale_y_continuous(labels=percent_format())+
+               xlab("Political parties") +
+               ylab("Frequency in %") +
+               ggtitle("Gender diversity in all political parties")+
+               theme(axis.text=element_text(size=14),
+                     axis.title=element_text(size=30,
+                                             face="bold",
+                                             colour = "#000000"),
+                     plot.title = element_text(size = 30,
+                                               face = "bold",
+                                               colour = "#9400D3"),
+                     panel.background = element_rect(fill= "#FFFFFF"),
+                     panel.border = element_rect(colour = "black", 
+                                                 fill=NA, 
+                                                 size=0.5))
+
+#Top 10 political parties
+top5.political.party. <- sort(table(master.data$political.party.), decreasing = T)[1:5]
+
+top5.pp.data <- master.data[master.data$political.party. == names(top5.political.party.)[[1]]
+                            | master.data$political.party. == names(top5.political.party.)[[2]]
+                            | master.data$political.party. == names(top5.political.party.)[[3]]
+                            | master.data$political.party. == names(top5.political.party.)[[4]]
+                            | master.data$political.party. == names(top5.political.party.)[[5]],]
+
+top5.pp.data <- droplevels.data.frame(top5.pp.data)
+
+no.of.term. = NULL
+for(i in 1:length(top5.pp.data$no.of.term)){
+     if(top5.pp.data$no.of.term[i] =="First"){
+          no.of.term.[i]=1
+     } else if(top5.pp.data$no.of.term[i] =="Second"){
+          no.of.term.[i]=2
+     } else if(top5.pp.data$no.of.term[i] =="Third"){
+          no.of.term.[i]=3
+     }else if(top5.pp.data$no.of.term[i] =="Fourth"){
+          no.of.term.[i]=4
+     }else if(top5.pp.data$no.of.term[i] =="Fifth"){
+          no.of.term.[i]=5
+     }else if(top5.pp.data$no.of.term[i] =="Sixth"){
+          no.of.term.[i]=6
+     }else if(top5.pp.data$no.of.term[i] =="Seventh"){
+          no.of.term.[i]=7
+     }else if(top5.pp.data$no.of.term[i] =="Eighth"){
+          no.of.term.[i]=8
+     }else if(top5.pp.data$no.of.term[i] =="Ninth"){
+          no.of.term.[i]=9
+     }else {
+          no.of.term.[i]=top5.pp.data$no.of.term[i]
+     }
+}
+
+top5.pp.data <- cbind(top5.pp.data,
+                      no.of.term.)
+
+top5.pp.data$no.of.term. <- as.factor(top5.pp.data$no.of.term.)
+
+
+fig7.5 <- ggplot(top5.pp.data, 
+            aes(x = questions , 
+                y = debates,
+                color = political.party.,
+                fill = political.party.))+
+     geom_smooth()+
+     xlab("Questions asked") +
+               ylab("Debates participated in")+
+          scale_fill_manual(values=c("Red", "Blue", "Green", "Yellow", "Orange"))+
+          ggtitle("Relationship between questions and debates")+
+          theme(axis.text=element_text(size=16),
+                     axis.title=element_text(hjust = 0.5,
+                                             size=30,
+                                             face="bold",
+                                             colour = "#000000"),
+                     plot.title = element_text(size = 30,
+                                               face = "bold",
+                                               colour = "#9400D3"),
+                     legend.text = element_text(size = 26),
+                     panel.background = element_rect(fill= "#FFFFFF"),
+                     panel.border = element_rect(colour = "black", 
+                                                 fill=NA, 
+                                                 size=0.5))
+
+
+
+fig8 <- ggplot(data = top5.pp.data, 
+                 aes(x = political.party., 
+                     y = no.of.term.)) +
+          geom_tile(aes(fill = questions), 
+                      na.rm = T)+
+  scale_fill_gradient('questions', 
+                      limits=c(range(top5.pp.data$questions)[1], 
+                               range(top5.pp.data$questions)[2]), 
+                      breaks = c(range(top5.pp.data$questions)[1], 
+                                 200,
+                                 400, 
+                                 600, 
+                                 range(top5.pp.data$questions)[2]),  
+                      low = "blue", 
+                      high = "green") +
+     xlab("Political parties") +
+     ylab("Experience denoted by the no. of terms") +
+     ggtitle("Does more experienced MPs raise more questions")+
+     theme(axis.text=element_text(size=14),
+           axis.title=element_text(size=30,
+                                   face="bold",
+                                   colour = "#000000"),
+           plot.title = element_text(size = 30,
+                                     face = "bold",
+                                     colour = "#9400D3"),
+           legend.text = element_text(size = 16),
+           panel.background = element_rect(fill= "#FFFFFF"),
+           panel.border = element_rect(colour = "black", 
+                                       fill=NA, 
+                                       size=0.5)) 
+
+
+
+
+
+fig9 <- ggplot(data = top5.pp.data, 
+                 aes(x = political.party., 
+                     y = no.of.term.)) +
+          geom_tile(aes(fill = attendance.), 
+                      na.rm = T)+
+  scale_fill_gradient('attendance.', 
+                      limits=c(0, 
+                               100), 
+                      breaks = c(0, 
+                                 20,
+                                 40, 
+                                 60, 
+                                 80, 
+                                 100),  
+                      low = "red", 
+                      high = "yellow") +
+     xlab("Political parties") +
+     ylab("Experience denoted by the no. of terms") +
+     ggtitle("Does more experienced MPs have more attendance")+
+     theme(axis.text=element_text(size=14),
+           axis.title=element_text(size=30,
+                                   face="bold",
+                                   colour = "#000000"),
+           plot.title = element_text(size = 30,
+                                     face = "bold",
+                                     colour = "#9400D3"),
+           legend.text = element_text(size = 16),
+           panel.background = element_rect(fill= "#FFFFFF"),
+           panel.border = element_rect(colour = "black", 
+                                       fill=NA, 
+                                       size=0.5)) 
+
+
+
+
+```
+
+### <span style="color:#800080"> Section 1: The following graphs are based upon MPs in general and irrespective of all political parties. <span>
+
+```{r, echo = F}
+grid.arrange(fig1, fig2, nrow = 2, newpage = T, padding = unit(2))
+```
+
+```{r, echo = F}
+grid.arrange(fig3, fig4, ncol = 2, newpage = T, padding = unit(2))
+```
+
+```{r, echo = F}
+grid.arrange(fig5, fig6, ncol = 2, newpage = T, padding = unit(2))
+```
+
+### <span style="color:red"> Section 2: The following graphs are based upon the top five political parties. <span>
+
+```{r, echo = F}
+grid.arrange(fig7, fig7.5, ncol = 2, newpage = T, padding = unit(2))
+```
+
+```{r, echo = F}
+ grid.arrange(fig8, fig9, ncol = 2, newpage = T, padding = unit(2))
+ ```
+
